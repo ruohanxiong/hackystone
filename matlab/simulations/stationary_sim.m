@@ -18,8 +18,8 @@ anchorLocations{3}.Y = 10;
 anchorLocations{4}.X = 0;
 anchorLocations{4}.Y = 10;
 
-tags{1}.X = 5;
-tags{1}.Y = 5;
+tags{1}.X = 7;
+tags{1}.Y = 3;
 tags{1}.data = struct([]);
 
 %% Generate simulated data
@@ -47,4 +47,4 @@ for i=1:numCycles
 end
 
 %% Save data above
-save('simdata.mat', 'anchorLocations', 'tags')
+save('simdata2.mat', 'anchorLocations', 'tags')

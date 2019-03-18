@@ -1,8 +1,8 @@
 % For now, this assumes a single tag: tag{1}
 
-load('simdata1.mat')
+load('simdata2.mat')
 
-averagingPeriod = 10; % average RSSI values for 10 seconds
+averagingPeriod = 60; % average RSSI values for 10 seconds
 
 t0 = 0;
 
@@ -25,7 +25,7 @@ while i <= numel(tags{1}.data) % while still processing data
     % compute distances, compute pose
     averageRSSI = averageRSSI ./ numMeasurements;
     distancePredictions = distance_model(averageRSSI);
-    lossFct = getLossFct(distancePredictions, anchorLocations);
+    lossFct = getLossFct(distancePredictions', anchorLocations);
     % Use Levenberg-Marquardt Algorithm which is a least squares algorithm
     % for non-linear functions
     posPrediction = lsqnonlin(lossFct, [0;0])
