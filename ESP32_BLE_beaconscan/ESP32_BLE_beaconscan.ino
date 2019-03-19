@@ -2,7 +2,7 @@
    Based on Neil Kolban example for IDF: https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleScan.cpp
    Ported to Arduino ESP32 by Evandro Copercini
 */
-
+#include <ArduinoJson.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEScan.h>
@@ -11,67 +11,48 @@
 #include "BLEEddystoneTLM.h"
 #include "BLEEddystoneURL.h"
 
+#define ANCHOR_ID "a3"
+//#define CONNECT_WIFI // remove this directive if debugging with Serial
+#define WIFI_SSID "your_ssid"
+#define WIFI_PSK "wifi_psk"
+#define ENDPOINT "http://railfan.net/api/v1.0"
+#define LED_PIN 2
+
+
 BLEScan* pBLEScan;
 int scanTime = 1; //In seconds
 uint16_t beconUUID = 0xFEAA;
 #define ENDIAN_CHANGE_U16(x) ((((x)&0xFF00)>>8) + (((x)&0xFF)<<8))
 
+char tag_names[300];
+int rssi_vals[100];
+int rssi_ptr;
+
+
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
-  
     void onResult(BLEAdvertisedDevice advertisedDevice) {
       if (advertisedDevice.getServiceDataUUID().equals(BLEUUID(beconUUID))==true) {  // found Eddystone UUID
-        //Serial.printf("\n\n");
         //Serial.printf("Advertised Device: %s \n", advertisedDevice.toString().c_str());
         std::string strServiceData = advertisedDevice.getServiceData();
         uint8_t cServiceData[100];
         strServiceData.copy((char *)cServiceData, strServiceData.length(), 0);
-        //Serial.printf("is Eddystone: %d %s length %d\n", advertisedDevice.getServiceDataUUID().bitSize(), advertisedDevice.getServiceDataUUID().toString().c_str(),strServiceData.length());
-        if (cServiceData[0]==0x10) {
-           BLEEddystoneURL oBeacon = BLEEddystoneURL();
-           oBeacon.setData(strServiceData);
-           //Serial.printf("Eddystone Frame Type (Eddystone-URL) ");
-           //Serial.printf(oBeacon.getDecodedURL().c_str());
-        } else if (cServiceData[0]==0x20) {
+        if (cServiceData[0]==0x20) { // unencrypted Eddystone-TLM
            BLEEddystoneTLM oBeacon = BLEEddystoneTLM();
            oBeacon.setData(strServiceData);
-           //Serial.printf("Eddystone Frame Type (Unencrypted Eddystone-TLM) \n");
-           //Serial.printf(oBeacon.toString().c_str());
-           Serial.printf("\nRSSI: %d ", advertisedDevice.getRSSI()); // XXX
-        } else {
-          for (int i=0;i<strServiceData.length();i++) {
-            Serial.printf("[%X]",cServiceData[i]);
-          }
+           Serial.printf("Name: %s, RSSI: %d\n", advertisedDevice.getName().c_str(), advertisedDevice.getRSSI());
+           strcat(tag_names, advertisedDevice.getName().c_str());
+           strcat(tag_names, " ");
+           rssi_vals[rssi_ptr] = (signed int) advertisedDevice.getRSSI();
+           rssi_ptr++;
         }
-        //Serial.printf("\n");
-
-       } else {
-//        if (advertisedDevice.haveManufacturerData()==true) {
-//          std::string strManufacturerData = advertisedDevice.getManufacturerData();
-//          
-//          uint8_t cManufacturerData[100];
-//          strManufacturerData.copy((char *)cManufacturerData, strManufacturerData.length(), 0);
-//          
-//          if (strManufacturerData.length()==25 && cManufacturerData[0] == 0x4C  && cManufacturerData[1] == 0x00 ) {
-//            BLEBeacon oBeacon = BLEBeacon();
-//            oBeacon.setData(strManufacturerData);
-//            Serial.printf("iBeacon Frame\n");
-//            Serial.printf("ID: %04X Major: %d Minor: %d UUID: %s Power: %d\n",oBeacon.getManufacturerId(),ENDIAN_CHANGE_U16(oBeacon.getMajor()),ENDIAN_CHANGE_U16(oBeacon.getMinor()),oBeacon.getProximityUUID().toString().c_str(),oBeacon.getSignalPower());
-//          } else {
-//
-//            Serial.printf("strManufacturerData: %d ",strManufacturerData.length());
-//            for (int i=0;i<strManufacturerData.length();i++) {
-//              Serial.printf("[%X]",cManufacturerData[i]);
-//            }
-//            Serial.printf("\n"); 
-//          }
-//         } else {
-//          Serial.printf("no Beacon Advertised ServiceDataUUID: %d %s \n", advertisedDevice.getServiceDataUUID().bitSize(), advertisedDevice.getServiceDataUUID().toString().c_str());
-//         }
-        }
+      }
     }
 };
 
+
 void setup() {
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
   Serial.begin(115200);
   Serial.println("Scanning...");
 
@@ -79,10 +60,50 @@ void setup() {
   pBLEScan = BLEDevice::getScan(); //create new scan
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks(), true);
   pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
+
+#ifdef CONNECT_WIFI
+  WiFi.begin(WIFI_SSID, WIFI_PSK);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.println("waiting for WiFi connection");
+  }
+  digitalWrite(LED_PIN, HIGH);
+#endif
 }
 
 void loop() {
+
+  rssi_ptr = 0;
+  std::fill_n(rssi_vals, 100, 0);
+  memset(tag_names, 0, 300);
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &json = jsonBuffer.createObject();
+  json["anchor"] = ANCHOR_ID;
+  json["uptime"] = millis();
+  JsonArray &scanData = json.createNestedArray("data");
+
   BLEScanResults foundDevices = pBLEScan->start(scanTime);
-  //Serial.printf("\nScan done! Devices found: %d\n",foundDevices.getCount());
-  // delay(2000);
+  char *tag_id = strtok(tag_names, " ");
+  for (int i=0; i<rssi_ptr; i++){
+      JsonObject &thisScan = scanData.createNestedObject();
+      thisScan["tag_id"] = tag_id;
+      thisScan["RSSI"] = rssi_vals[i];
+      tag_id = strtok(NULL, " ");
+  }
+  json.prettyPrintTo(Serial);
+
+#ifdef CONNECT_WIFI
+    char json_buffer[1024];
+    json.prettyPrintTo(json_buffer, sizeof(json_buffer));
+
+    HTTPClient http;
+    http.begin(ENDPOINT);
+    http.addHeader("Content-Type", "application/json");
+    int httpCode = http.POST(json_buffer);
+    http.end();
+    Serial.printf("HTTP Response: %d\n", httpCode);
+    digitalWrite(LED_PIN, httpCode == HTTP_SUCCESS);
+#endif
+  jsonBuffer.clear();
 }
