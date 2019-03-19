@@ -16,10 +16,15 @@ def readcsv(file):
                 columns[headers[i]].append(row[i])
     return columns
 
-def init_measurement_data(file):
+def insert_measurement_data(file):
     """Inserts tag measurement data from the given file into redis of the current configuration.
     """
-    pass
+    data = readcsv(file)
+    N = len(data['tagId'])
+    for i in range(0, len(data['tagId'])):
+        key = 'tag' + data['tagId'][i] + '_data'
+        score = int(data['timestamp'][i])
+        element = 'lolcats'
+        r.zadd(key, {element:score})
 
-columns = readcsv('../data/mock_data1/anchordata.csv')
-print(columns)
+insert_measurement_data('../data/mock_data1/tagdata.csv')
