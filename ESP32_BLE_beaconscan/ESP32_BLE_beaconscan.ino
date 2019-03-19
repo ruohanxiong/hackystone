@@ -20,29 +20,29 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
   
     void onResult(BLEAdvertisedDevice advertisedDevice) {
       if (advertisedDevice.getServiceDataUUID().equals(BLEUUID(beconUUID))==true) {  // found Eddystone UUID
-        Serial.printf("\n\n");
-        Serial.printf("Advertised Device: %s \n", advertisedDevice.toString().c_str());
+        //Serial.printf("\n\n");
+        //Serial.printf("Advertised Device: %s \n", advertisedDevice.toString().c_str());
         std::string strServiceData = advertisedDevice.getServiceData();
         uint8_t cServiceData[100];
         strServiceData.copy((char *)cServiceData, strServiceData.length(), 0);
-        Serial.printf("is Eddystone: %d %s length %d\n", advertisedDevice.getServiceDataUUID().bitSize(), advertisedDevice.getServiceDataUUID().toString().c_str(),strServiceData.length());
+        //Serial.printf("is Eddystone: %d %s length %d\n", advertisedDevice.getServiceDataUUID().bitSize(), advertisedDevice.getServiceDataUUID().toString().c_str(),strServiceData.length());
         if (cServiceData[0]==0x10) {
            BLEEddystoneURL oBeacon = BLEEddystoneURL();
            oBeacon.setData(strServiceData);
-           Serial.printf("Eddystone Frame Type (Eddystone-URL) ");
-           Serial.printf(oBeacon.getDecodedURL().c_str());
+           //Serial.printf("Eddystone Frame Type (Eddystone-URL) ");
+           //Serial.printf(oBeacon.getDecodedURL().c_str());
         } else if (cServiceData[0]==0x20) {
            BLEEddystoneTLM oBeacon = BLEEddystoneTLM();
            oBeacon.setData(strServiceData);
-           Serial.printf("Eddystone Frame Type (Unencrypted Eddystone-TLM) \n");
-           Serial.printf(oBeacon.toString().c_str());
-           Serial.printf("\nRSSI: %d  \n", advertisedDevice.getRSSI()); // XXX 
+           //Serial.printf("Eddystone Frame Type (Unencrypted Eddystone-TLM) \n");
+           //Serial.printf(oBeacon.toString().c_str());
+           Serial.printf("\nRSSI: %d ", advertisedDevice.getRSSI()); // XXX
         } else {
           for (int i=0;i<strServiceData.length();i++) {
             Serial.printf("[%X]",cServiceData[i]);
           }
         }
-        Serial.printf("\n");
+        //Serial.printf("\n");
 
        } else {
 //        if (advertisedDevice.haveManufacturerData()==true) {
@@ -77,12 +77,12 @@ void setup() {
 
   BLEDevice::init("");
   pBLEScan = BLEDevice::getScan(); //create new scan
-  pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+  pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks(), true);
   pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
 }
 
 void loop() {
   BLEScanResults foundDevices = pBLEScan->start(scanTime);
-  Serial.printf("\nScan done! Devices found: %d\n",foundDevices.getCount());
-  delay(2000);
+  //Serial.printf("\nScan done! Devices found: %d\n",foundDevices.getCount());
+  // delay(2000);
 }
