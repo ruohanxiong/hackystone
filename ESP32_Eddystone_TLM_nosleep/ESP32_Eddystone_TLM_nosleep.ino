@@ -31,7 +31,6 @@
 #include "BLEUtils.h"
 #include "esp_sleep.h"
 
-#define GPIO_DEEP_SLEEP_DURATION     2  // sleep 2 seconds and then wake up
 #define LED_PIN 2 
 RTC_DATA_ATTR static time_t last;        // remember last boot in RTC Memory
 RTC_DATA_ATTR static uint32_t bootcount; // remember number of boots in RTC Memory
@@ -118,9 +117,9 @@ void loop() {
   digitalWrite(LED_PIN, HIGH);
   pAdvertising->start();
   Serial.println("Advertising started...");
-  delay(100);
+  delay(50);
   pAdvertising->stop();
   digitalWrite(LED_PIN, LOW);
-  Serial.printf("sleeping for 1 second \n");
-  delay(1000);
+  Serial.printf("sleeping... \n");
+  delay(50);
 }
