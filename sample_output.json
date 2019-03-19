@@ -1,0 +1,94 @@
+{
+  "anchor": "a3",
+  "uptime": 7352,
+  "data": [
+    {
+      "tag_id": "t2",
+      "RSSI": -56
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -56
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -59
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -58
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -58
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -58
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -56
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -56
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -56
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -58
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -58
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -58
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -57
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -56
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -56
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -57
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -60
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -58
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -58
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -57
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -57
+    },
+    {
+      "tag_id": "t2",
+      "RSSI": -57
+    }
+  ]
+}
