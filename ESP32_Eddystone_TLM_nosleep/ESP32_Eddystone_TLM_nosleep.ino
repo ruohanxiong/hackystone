@@ -32,7 +32,7 @@
 #include "esp_sleep.h"
 
 #define LED_PIN 2
-#define TAG_NAME "t2"
+#define TAG_ID "0" // string
 
 RTC_DATA_ATTR static time_t last;        // remember last boot in RTC Memory
 RTC_DATA_ATTR static uint32_t bootcount; // remember number of boots in RTC Memory
@@ -69,7 +69,7 @@ void setBeacon() {
 
     oAdvertisementData.setFlags(0x06); // GENERAL_DISC_MODE 0x02 | BR_EDR_NOT_SUPPORTED 0x04
     oAdvertisementData.setCompleteServices(BLEUUID(beconUUID));
-    oAdvertisementData.setName(TAG_NAME);
+    oAdvertisementData.setName(TAG_ID);
 
     beacon_data[0] = 0x20;  // Eddystone Frame Type (Unencrypted Eddystone-TLM)
     beacon_data[1] = 0x00;  // TLM version

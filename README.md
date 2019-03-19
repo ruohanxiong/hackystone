@@ -36,17 +36,17 @@ setup, we can use VIN with 4xAA power packs.
 # Uploading to Board
 
 ## Tags 
-Set preprocessor directive `TAG_NAME` to a unique string of length 2, ex `t1`. 
+Set preprocessor directive `TAG_ID` to an unique integer *in string format* ex. `"0"`
 
 Upload to board and hard reset (click `EN`) the device.
 
 Blue LED should flash on every transmit. 
 
 ## Anchor 
-Set preprocessor directive `ANCHOR_ID` to a unique string of length 2, ex`a0`.
+Set preprocessor directive `ANCHOR_ID` to an unique integer , ex `1`.
 Configure WiFI SSID, password, and HTTP URL for API endpoint using the directives. 
 
-Upload to board and hard reset (click `EN`) the device.
+Upload to board and hard reset (click `EN` button) the device.
 
 Blue LED is on when WiFi uplink is established successfully and HTTP `200` 
 responses are being received from server. 
@@ -54,12 +54,12 @@ responses are being received from server.
 # Output
 
 JSON object with the following:
-* `anchor`: string, length 2. ex. "a0"
+* `anchorId`: int
 * `uptime`: int, milliseconds since anchor boot. ex. 2712
     * note: this time is relative and inaccurate - significant drift
 * `data`: array of objects: 
-    * `tag_id`: string, length 2. ex. "t1"
-    * `RSSI`: int between -99 and 0 
+    * `tagId`: int
+    * `rssi`: int between -99 and 0 
 
 See `sample_output.json`. 
 

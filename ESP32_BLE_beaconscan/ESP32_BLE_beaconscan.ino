@@ -11,7 +11,7 @@
 #include "BLEEddystoneTLM.h"
 #include "BLEEddystoneURL.h"
 
-#define ANCHOR_ID "a3"
+#define ANCHOR_ID 2
 //#define CONNECT_WIFI // remove this directive if debugging with Serial
 #define WIFI_SSID "your_ssid"
 #define WIFI_PSK "wifi_psk"
@@ -23,7 +23,7 @@ int scanTime = 1; //In seconds
 uint16_t beconUUID = 0xFEAA;
 #define ENDIAN_CHANGE_U16(x) ((((x)&0xFF00)>>8) + (((x)&0xFF)<<8))
 
-char tag_names[300];
+int tag_ids[100];
 int rssi_vals[100];
 int rssi_ptr;
 
@@ -37,9 +37,8 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
             if (cServiceData[0]==0x20) { // unencrypted Eddystone-TLM
                 BLEEddystoneTLM oBeacon = BLEEddystoneTLM();
                 oBeacon.setData(strServiceData);
-                Serial.printf("Name: %s, RSSI: %d\n", advertisedDevice.getName().c_str(), advertisedDevice.getRSSI());
-                strcat(tag_names, advertisedDevice.getName().c_str());
-                strcat(tag_names, " ");
+                Serial.printf("tagId: %d, RSSI: %d\n", atoi(advertisedDevice.getName().c_str()), advertisedDevice.getRSSI());
+                tag_ids[rssi_ptr] = atoi(advertisedDevice.getName().c_str());
                 rssi_vals[rssi_ptr] = (signed int) advertisedDevice.getRSSI();
                 rssi_ptr++;
             }
@@ -72,21 +71,19 @@ void setup() {
 void loop() {
     rssi_ptr = 0;
     std::fill_n(rssi_vals, 100, 0);
-    memset(tag_names, 0, 300);
+    std::fill_n(tag_ids, 100, 0);
 
     DynamicJsonBuffer jsonBuffer;
     JsonObject &json = jsonBuffer.createObject();
-    json["anchor"] = ANCHOR_ID;
+    json["anchorId"] = ANCHOR_ID;
     json["uptime"] = millis();
     JsonArray &scanData = json.createNestedArray("data");
 
     BLEScanResults foundDevices = pBLEScan->start(scanTime);
-    char *tag_id = strtok(tag_names, " ");
     for (int i=0; i<rssi_ptr; i++){
         JsonObject &thisScan = scanData.createNestedObject();
-        thisScan["tag_id"] = tag_id;
-        thisScan["RSSI"] = rssi_vals[i];
-        tag_id = strtok(NULL, " ");
+        thisScan["tagId"] = tag_ids[i];
+        thisScan["rssi"] = rssi_vals[i];
     }
     json.prettyPrintTo(Serial);
 
