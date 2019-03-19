@@ -18,7 +18,6 @@
 #define ENDPOINT "http://railfan.net/api/v1.0"
 #define LED_PIN 2
 
-
 BLEScan* pBLEScan;
 int scanTime = 1; //In seconds
 uint16_t beconUUID = 0xFEAA;
@@ -28,24 +27,23 @@ char tag_names[300];
 int rssi_vals[100];
 int rssi_ptr;
 
-
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
     void onResult(BLEAdvertisedDevice advertisedDevice) {
-      if (advertisedDevice.getServiceDataUUID().equals(BLEUUID(beconUUID))==true) {  // found Eddystone UUID
-        //Serial.printf("Advertised Device: %s \n", advertisedDevice.toString().c_str());
-        std::string strServiceData = advertisedDevice.getServiceData();
-        uint8_t cServiceData[100];
-        strServiceData.copy((char *)cServiceData, strServiceData.length(), 0);
-        if (cServiceData[0]==0x20) { // unencrypted Eddystone-TLM
-           BLEEddystoneTLM oBeacon = BLEEddystoneTLM();
-           oBeacon.setData(strServiceData);
-           Serial.printf("Name: %s, RSSI: %d\n", advertisedDevice.getName().c_str(), advertisedDevice.getRSSI());
-           strcat(tag_names, advertisedDevice.getName().c_str());
-           strcat(tag_names, " ");
-           rssi_vals[rssi_ptr] = (signed int) advertisedDevice.getRSSI();
-           rssi_ptr++;
+        if (advertisedDevice.getServiceDataUUID().equals(BLEUUID(beconUUID))==true) {  // found Eddystone UUID
+            //Serial.printf("Advertised Device: %s \n", advertisedDevice.toString().c_str());
+            std::string strServiceData = advertisedDevice.getServiceData();
+            uint8_t cServiceData[100];
+            strServiceData.copy((char *)cServiceData, strServiceData.length(), 0);
+            if (cServiceData[0]==0x20) { // unencrypted Eddystone-TLM
+                BLEEddystoneTLM oBeacon = BLEEddystoneTLM();
+                oBeacon.setData(strServiceData);
+                Serial.printf("Name: %s, RSSI: %d\n", advertisedDevice.getName().c_str(), advertisedDevice.getRSSI());
+                strcat(tag_names, advertisedDevice.getName().c_str());
+                strcat(tag_names, " ");
+                rssi_vals[rssi_ptr] = (signed int) advertisedDevice.getRSSI();
+                rssi_ptr++;
+            }
         }
-      }
     }
 };
 
@@ -62,36 +60,35 @@ void setup() {
   pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
 
 #ifdef CONNECT_WIFI
-  WiFi.begin(WIFI_SSID, WIFI_PSK);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.println("waiting for WiFi connection");
-  }
-  digitalWrite(LED_PIN, HIGH);
+    WiFi.begin(WIFI_SSID, WIFI_PSK);
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.println("waiting for WiFi connection");
+    }
+    digitalWrite(LED_PIN, HIGH);
 #endif
 }
 
 void loop() {
+    rssi_ptr = 0;
+    std::fill_n(rssi_vals, 100, 0);
+    memset(tag_names, 0, 300);
 
-  rssi_ptr = 0;
-  std::fill_n(rssi_vals, 100, 0);
-  memset(tag_names, 0, 300);
+    DynamicJsonBuffer jsonBuffer;
+    JsonObject &json = jsonBuffer.createObject();
+    json["anchor"] = ANCHOR_ID;
+    json["uptime"] = millis();
+    JsonArray &scanData = json.createNestedArray("data");
 
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &json = jsonBuffer.createObject();
-  json["anchor"] = ANCHOR_ID;
-  json["uptime"] = millis();
-  JsonArray &scanData = json.createNestedArray("data");
-
-  BLEScanResults foundDevices = pBLEScan->start(scanTime);
-  char *tag_id = strtok(tag_names, " ");
-  for (int i=0; i<rssi_ptr; i++){
-      JsonObject &thisScan = scanData.createNestedObject();
-      thisScan["tag_id"] = tag_id;
-      thisScan["RSSI"] = rssi_vals[i];
-      tag_id = strtok(NULL, " ");
-  }
-  json.prettyPrintTo(Serial);
+    BLEScanResults foundDevices = pBLEScan->start(scanTime);
+    char *tag_id = strtok(tag_names, " ");
+    for (int i=0; i<rssi_ptr; i++){
+        JsonObject &thisScan = scanData.createNestedObject();
+        thisScan["tag_id"] = tag_id;
+        thisScan["RSSI"] = rssi_vals[i];
+        tag_id = strtok(NULL, " ");
+    }
+    json.prettyPrintTo(Serial);
 
 #ifdef CONNECT_WIFI
     char json_buffer[1024];
@@ -105,5 +102,5 @@ void loop() {
     Serial.printf("HTTP Response: %d\n", httpCode);
     digitalWrite(LED_PIN, httpCode == HTTP_SUCCESS);
 #endif
-  jsonBuffer.clear();
+    jsonBuffer.clear();
 }
