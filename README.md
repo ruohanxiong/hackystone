@@ -46,6 +46,8 @@ Blue LED should flash on every transmit.
 Set preprocessor directive `ANCHOR_ID` to an unique integer , ex `1`.
 Configure WiFI SSID, password, and HTTP URL for API endpoint using the directives. 
 
+Set partitioning scheme to `HUGE App (3MB no OTA)` (from Tools dropdown). 
+
 Upload to board and hard reset (click `EN` button) the device.
 
 Blue LED is on when WiFi uplink is established successfully and HTTP `200` 
