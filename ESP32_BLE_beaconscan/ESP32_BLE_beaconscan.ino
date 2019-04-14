@@ -1,6 +1,6 @@
 /*
    Based on Neil Kolban example for IDF: https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleScan.cpp
-   Ported to Arduino ESP32 by Evandro Copercini
+   Originally ported to Arduino ESP32 by Evandro Copercini
 */
 #include <ArduinoJson.h>
 #include <BLEDevice.h>
@@ -10,12 +10,14 @@
 #include "BLEBeacon.h"
 #include "BLEEddystoneTLM.h"
 #include "BLEEddystoneURL.h"
+#include "HTTPClient.h"
+#include "WiFi.h"
 
-#define ANCHOR_ID 2
-//#define CONNECT_WIFI // remove this directive if debugging with Serial
+#define ANCHOR_ID 3
+#define CONNECT_WIFI // remove this directive if debugging with Serial
 #define WIFI_SSID "your_ssid"
-#define WIFI_PSK "wifi_psk"
-#define ENDPOINT "http://railfan.net/api/v1.0"
+#define WIFI_PSK "your_wifi_psk"
+#define ENDPOINT "http://192.168.43.139:5000/upload_tag_ping"
 #define LED_PIN 2
 
 BLEScan* pBLEScan;
@@ -64,6 +66,7 @@ void setup() {
         delay(500);
         Serial.println("waiting for WiFi connection");
     }
+    Serial.println("WiFi connected");
     digitalWrite(LED_PIN, HIGH);
 #endif
 }
@@ -77,6 +80,7 @@ void loop() {
     JsonObject &json = jsonBuffer.createObject();
     json["anchorId"] = ANCHOR_ID;
     json["uptime"] = millis();
+    json["batchInterval"] = (float) scanTime;
     JsonArray &scanData = json.createNestedArray("data");
 
     BLEScanResults foundDevices = pBLEScan->start(scanTime);
@@ -97,7 +101,7 @@ void loop() {
     int httpCode = http.POST(json_buffer);
     http.end();
     Serial.printf("HTTP Response: %d\n", httpCode);
-    digitalWrite(LED_PIN, httpCode == HTTP_SUCCESS);
+    digitalWrite(LED_PIN, httpCode == 200);
 #endif
     jsonBuffer.clear();
 }
