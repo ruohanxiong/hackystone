@@ -1,31 +1,12 @@
-/* Copyright (c) 2018 pcbreflux. All Rights Reserved.
+/* Hackystone tag code for broadcasting Google Eddystone-TLM formatted
+ * BLE advertisements at fixed intervals with ESP32 development board.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>. *
- */
- 
-/*
-   Create a BLE server that will send periodic Eddystone frames.
-   The design of creating the BLE server is:
-   1. Create a BLE Server
-   2. Create advertising data
-   3. Start advertising.
-   4. wait
-   5. Stop advertising.
-   6. repeat at 3
-   
+ * Ruohan Xiong, 2019.
+ * Code is based on work from pcbreflux
+ * https://github.com/pcbreflux/espressif
 */
-#include "sys/time.h"
 
+#include "sys/time.h"
 #include "BLEDevice.h"
 #include "BLEServer.h"
 #include "BLEUtils.h"

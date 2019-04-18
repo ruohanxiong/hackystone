@@ -1,7 +1,24 @@
-/*
-   Based on Neil Kolban example for IDF: https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleScan.cpp
-   Originally ported to Arduino ESP32 by Evandro Copercini
+/* Hackystone anchor code for scanning for Google Eddystone-TLM formatted
+ * BLE advertisements and uploading received tag pings and associated RSSI
+ * values to server via HTTP POST at set intervals.
+ *
+ * Structure:
+ * 1. Setup. Connect to WiFi
+ * 2. Scan (1 second, log repeated advertisements from same device)
+ *      - RSSI data from pings formatted with tag ID in Eddystone-TLM name will be pushed to buffer
+ * 3. Format buffer data to JSON. push to server.
+ * 4. Repeat at step 2
+ *
+ * Ruohan Xiong, 2019.
+ *
+ * BLE scanning code is based on work from the following authors:
+ * pcbreflux
+ *     https://github.com/pcbreflux/espressif
+ * Neil Kolban's example for IDF
+ *     https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleScan.cpp
+ *     Originally ported to Arduino ESP32 by Evandro Copercini
 */
+
 #include <ArduinoJson.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
@@ -13,10 +30,10 @@
 #include "HTTPClient.h"
 #include "WiFi.h"
 
-#define ANCHOR_ID 3
+#define ANCHOR_ID 4
 #define CONNECT_WIFI // remove this directive if debugging with Serial
-#define WIFI_SSID "your_ssid"
-#define WIFI_PSK "your_wifi_psk"
+#define WIFI_SSID "Drop it like its Hotspot"
+#define WIFI_PSK "helloworld321"
 #define ENDPOINT "http://192.168.43.139:5000/upload_tag_ping"
 #define LED_PIN 2
 
@@ -70,6 +87,7 @@ void setup() {
     digitalWrite(LED_PIN, HIGH);
 #endif
 }
+
 
 void loop() {
     rssi_ptr = 0;
