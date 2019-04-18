@@ -1,30 +1,40 @@
 # Hackystone 
 
-Capstone hardware prototyping for indoor localization with Bluetooth Low Energy. 
+![hackystone_cover_image](frankfurt_rail_station.jpg)
+
+Microcontroller code for indoor localization with BLE. Part of Capstone design 
+project, winter 2019.
 
 ESP32_BLE_beaconscan and ESP_32_Eddystone_TLM_nosleep are based on code from 
 [pcbreflux](https://github.com/pcbreflux/espressif/tree/master/esp32/arduino/sketchbook)
 
+# Structure
+
+Anchors: stationary BLE-WiFi gateways which scan for advertisements from tags
+and uploads pings received and RSSI values to server endpoint via HTTP POST.
+
+Tags: mobile beacons which broadcast advertisements at fixed intervals using 
+the Google Eddystone-TLM protocol. 
+
 # What this does so far
  
-`ESP32_Eddystone_TLM_nosleep` is a simple sketch that uploads a BLE ping every 
-second. The ping's data is formatted per Google's Eddystone protocol which 
+`ESP32_Eddystone_TLM_nosleep` sends a BLE advertisement every 100 ms. 
+The ping's data is formatted per Google's Eddystone protocol which 
 allows us to transmit some identifying information with the ping. The blue LED 
-on board blinks when transmitting also. 
+on board blinks when transmitting. 
 
 `ESP32_BLE_beaconscan` monitors for Bluetooth pings. Eddystone protocol pings 
-are printed to serial (should be sent via WiFi). Serial monitor in Arduino: 
-Ctrl+Shift+M, set baud rate to 115200. 
+are printed to either serial (remove `CONNECT_WIFI`) or sent as JSON data to 
+server over HTTP. 
 
 Upload `ESP32_Eddystone_TLM_nosleep` to tag board(s) and `ESP32_BLE_beaconscan` 
-to anchor board(s). For now, anchor boards only print to serial so need to be 
-tethered until WiFi is implemented. 
+to anchor board(s). Remember to change all relevant device-specific 
+preprocessor directives. 
 
 Connect 2xAA battery pack to 3V3 and GND, *not VIN*. VIN goes through on-board 
 regulator to provide stable 3.3V to chip but this requires at least around 4.5V 
 input. 3V3 goes directly to chip - since actual input of chip is spec'ed at 
-2.3 - 3.6V this works well with 2xAA. If we experience any problems with this 
-setup, we can use VIN with 4xAA power packs.
+2.3 - 3.6V this works well with 2xAA. 
 
 
 # Dev Environment Setup
@@ -67,6 +77,5 @@ See `sample_output.json`.
 
 # Todos
 
-* Test WiFi support/HTTP upload of data
 * make beacon code work on nRF51822 (stretch goal, PoC w/ ESP32) 
 
